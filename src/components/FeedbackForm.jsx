@@ -1,5 +1,5 @@
 import Card from "./shared/Card";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import Button from "./shared/Button";
 import RatingSelect from "./RatingSelect";
 import FeedbackContext from "../context/FeedbackContext";
@@ -10,7 +10,16 @@ function FeedbackForm() {
   const [btnDisabled, setBtnDisabled] = useState(true);
   const [message, setMessage] = useState("");
 
-  const { addFeedback } = useContext(FeedbackContext);
+  const { addFeedback, feedbackEdit, updateFeedback } =
+    useContext(FeedbackContext);
+
+  useEffect(() => {
+    if (feedbackEdit.edit === true) {
+      setBtnDisabled(false);
+      setText(feedbackEdit.item.text);
+      setRating(feedbackEdit.item.rating);
+    }
+  }, [feedbackEdit]);
 
   const handleTextChange = (e) => {
     if (text === "") {
@@ -34,8 +43,16 @@ function FeedbackForm() {
         text,
         rating,
       };
-      addFeedback(newFeedback);
+
+      if (feedbackEdit.edit === true) {
+        updateFeedback(feedbackEdit.item.id, newFeedback);
+        // I have added this code to make the edit state to turn to false after the edit has been submitted.
+        feedbackEdit.edit = false;
+      } else {
+        addFeedback(newFeedback);
+      }
       setText("");
+      setBtnDisabled(true);
     }
   };
 
@@ -52,7 +69,10 @@ function FeedbackForm() {
             value={text}
           />
           <Button type="submit" isDisabled={btnDisabled}>
-            Send
+            {
+              // I have added this code so that it would show edit when there is editing being done and show send when there is nothing inside of the input.
+              feedbackEdit.edit !== true ? "Send" : "Edit"
+            }
           </Button>
         </div>
         {message && <div className="message">{message}</div>}
@@ -62,3 +82,4 @@ function FeedbackForm() {
 }
 
 export default FeedbackForm;
+// If edit is always empty then display 'Send' if edit is not empty then display 'Edit'
